@@ -27,13 +27,16 @@ def compute_ranks(graph):
 # Then, it starts with a list called 'tocrawl' and keeps adding pages to it. It recursively goes through all the pages till where this first seed links and puts them in a graph. 
 # There are 2 lists to know about 1. tocrawl; 2. crawled; 
 
-def crawl_web(seed): # returns index, graph of inlinks 
+def crawl_web(seed, max_pages): # returns index, graph of inlinks || Added a max_pages variable that breaks out of the loop when the number of max pages is exceeded. 
+    number_of_pages = 0
     tocrawl = [seed]
     crawled = []
     graph = {}  # <url>, [list of pages it links to]
     index = {} 
     while tocrawl:                                      # while the tocrawl list is not empty
-        page = tocrawl.pop()                            # Pops the last entered URL in the tocrawl list  
+        page = tocrawl.pop()
+        print page                                        # Uncomment this to see what all pages are getting crawled
+        number_of_pages = number_of_pages + 1                            # Pops the last entered URL in the tocrawl list  
         if page not in crawled:                         # Checks if the page is not already traversed. If it is, skips this if loop and goes back to 'while tocrawl'
             content = get_page(page)                    # Explained below. 
             add_page_to_index(index, page, content)     # Explained below. 
@@ -43,6 +46,9 @@ def crawl_web(seed): # returns index, graph of inlinks
             
             union(tocrawl, outlinks)                    # Check if the links that are present in 'outlinks' are also there is 'tocrawl' , if not , it'll add/append them to 'tocrawl' list.
             crawled.append(page)                        # Appends the whole page (content) to the string 'crawled'
+           
+        if (number_of_pages == max_pages):
+                break
     return index, graph
 
 
@@ -106,9 +112,26 @@ def lookup(index, keyword):
     else:
         return None
 
-index, graph = crawl_web('http://udacity.com/cs101x/urank/index.html')
+# For 1, normal crawl_web. 
+# index, graph = crawl_web('http://udacity.com/cs101x/urank/index.html')
+
+# For 2, with Max_pages  
+index, graph = crawl_web ('http://xkcd.com/', 30)
+
+# Let's try with wikipedia 
+# index, graph = crawl_web ('http://en.wikipedia.org/wiki/Language', 2)
 ranks = compute_ranks(graph)
 print ranks
+
+#--------------------------------Looking up of words like from a search engine---------------------------------------#
+
+word_url = lookup(index, 'fund')
+# word_url = lookup(index,'money')                     # word_url is a list of URLs
+print word_url
+
+
+
+# Output for 1. 
 
 #>>> {'http://udacity.com/cs101x/urank/kathleen.html': 0.11661866666666663,
 #'http://udacity.com/cs101x/urank/zinc.html': 0.038666666666666655,
@@ -117,6 +140,12 @@ print ranks
 #'http://udacity.com/cs101x/urank/index.html': 0.033333333333333326,
 #'http://udacity.com/cs101x/urank/nickel.html': 0.09743999999999997}
 
+# Output for 2. With Max_pages = 4
+# {'legalcode': 0.07066666666666666, '#': 0.07066666666666666, 'http://xkcd.com/': 0.04999999999999999, 'http://creativecommons.org/licenses/by-nc/2.5/': 0.05166666666666665}
 
+# Output when max_pages = 10
+# {'http://www.topatoco.com/merchant.mvc?Screen=PROD&Store_Code=TO&Product_Code=BF-COMIC-PRINTS&Category_Code=BF&Product_Attributes[1]:value=132 - can opener': 0.0314074074074074, 'http://www.topatoco.com/merchant.mvc?Screen=PRIVACY&Store_Code=TO': 0.0237864310043809, 'rss-id': 0.0314074074074074, 'http://www.buttercupfestival.com/': 0.022962962962962956, '#': 0.0314074074074074, 'http://xkcd.com/': 0.022222222222222216, 'http://creativecommons.org/licenses/by-nc/2.5/': 0.022962962962962956, 'legalcode': 0.0314074074074074, 'https://www.topatoco.com/merchant.mvc?Session_ID=47e1bc593d827441fedeaf19ec3c25b3&Screen=ORHL&Store_Code=TO': 0.024727191448566523}
 
-
+# Output for max_pages = 20
+# {'http://www.topatoco.com/merchant.mvc?Screen=PROD&Store_Code=TO&Product_Code=BF-COMIC-PRINTS&Category_Code=BF&Product_Attributes[1]:value=132 - can opener': 0.020190476190476186, '#': 0.020190476190476186, 'rss-id': 0.020190476190476186, 'http://www.topatoco.com/merchant.mvc?Session_ID=c070fd7af643dc6de9dd71bad58f3f99&Screen=PRIVACY&Store_Code=TO': 0.016003865383724617, 'https://www.topatoco.com/merchant.mvc?Session_ID=c070fd7af643dc6de9dd71bad58f3f99&Screen=JOIN&Store_Code=TO': 0.014925868920894462, 'http://www.buttercupfestival.com/': 0.014761904761904757, 'http://www.topatoco.com/merchant.mvc?Screen=PRIVACY&Store_Code=TO': 0.01771001707776763, 'http://xkcd.com/': 0.014285714285714282, 'http://creativecommons.org/licenses/by-nc/2.5/': 0.014761904761904757, 'legalcode': 0.020190476190476186, 'http://www.topatoco.com/merchant.mvc?Screen=WHOLESALE': 0.014925868920894462, 'https://www.topatoco.com/merchant.mvc?Session_ID=4b50a3f647afc721bec9045e399f788b&Screen=ORHL&Store_Code=TO': 0.015875537517107022, 'http://www.topatoco.com/merchant.mvc?Session_ID=c070fd7af643dc6de9dd71bad58f3f99&Screen=ABOUT&Store_Code=TO': 0.016003865383724617, 'https://www.topatoco.com/merchant.mvc?Session_ID=c070fd7af643dc6de9dd71bad58f3f99&Screen=ORHL&Store_Code=TO': 0.01844209381404054}
+# Has only 14 urls here. 
